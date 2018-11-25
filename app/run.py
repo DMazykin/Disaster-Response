@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
+from plotly import tools
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
@@ -40,38 +41,102 @@ def index():
     
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
+
+    genre_counts = df.groupby('genre').count()['message'].sort_values()
     genre_names = list(genre_counts.index)
+
     
+    labels = df.columns[4:].tolist()
+    messages_per_category = df[labels].sum().sort_values().tail(10)
+    categories = list(messages_per_category.index.str.replace("_", " "))
+
+    dataset = {
+        'n_records': df.shape[0],
+        'n_categories': len(labels)}
+
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
-    graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
-
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
-    ]
     
+    # Plot 1 with two subplots:
+
+    fig1 = tools.make_subplots(rows=1, cols=2, print_grid=False,
+                                subplot_titles=('Total number of messages by genre',
+                                                'Number of categories per message'))
+    # Trace 1: Number of categories per message
+
+    for i in range(0, len(genre_names)):
+        trace1 = dict(
+            type='box',
+            x = df[df['genre']==genre_names[i]][labels].sum(axis=1).values,
+            name = genre_names[i])
+        
+        fig1.append_trace(trace1, 1, 2)
+ 
+    # Trace 2: Total number of messages by genre
+
+    trace2 = dict(type='bar',
+                y=genre_names,
+                x=genre_counts,
+                orientation='h',
+                hoverinfo='none',
+                showlegend=False,
+                marker=dict(color=plotly.colors.DEFAULT_PLOTLY_COLORS[:len(genre_names)]))
+
+    fig1.append_trace(trace2, 1, 1)
+
+    # Add annotation for Trace 2
+    
+    annotations = ()
+    for xi, yi in zip(genre_counts, genre_names):
+        annotations = annotations + (dict(x=xi,
+                            y=yi,
+                            xref='x1', 
+                            yref='y1',
+                            text=str(xi),
+                            xanchor='left',
+                            showarrow=False,
+                            yanchor='middle'),)
+
+    fig1.layout.annotations = fig1.layout.annotations + annotations
+    
+     # Plot 2
+        
+    fig2 = {'data': [dict(type='bar',
+                    y=categories,
+                    x=messages_per_category/len(df),
+                    orientation = 'h',
+                    hoverinfo='none'),
+
+                dict(type='bar',
+                    y=categories,
+                    x=(len(df)-messages_per_category)/len(df),
+                    marker=dict(color='rgb(204,204,204)'),
+                    hoverinfo='none',
+                    orientation = 'h')],
+            'layout': dict(
+                barmode='stack',
+                title="Top 10 most frequent categories",
+                xaxis=dict(tickformat=".2%", 
+                            domain=[0.1, 0.9],
+                            title="Apearance of category in Training Dataset"),
+                margin=dict(pad=5),
+                showlegend=False,
+                annotations=[dict(
+                        x=xi+0,
+                        y=yi,
+                        text=str("{:.2%}".format(xi)),
+                        xanchor='left',
+                        yanchor='middle',
+                        showarrow=False) for yi, xi in zip(categories, messages_per_category/len(df))])
+            }
+    
+    graphs = [fig1, fig2]
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
     
     # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
+    return render_template('master.html', ids=ids, graphJSON=graphJSON, dataset=dataset)
 
 
 # web page that handles user query and displays model results
