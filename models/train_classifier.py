@@ -43,11 +43,20 @@ def tokenize(text):
 
 
 def build_model():
-    model = Pipeline([
+    scorer = make_scorer(f1_score, average='micro')
+    pipeline = Pipeline([
             ('vect', CountVectorizer(tokenizer=tokenize, stop_words='english')),
             ('tfidf', TfidfTransformer()),
-            ('clf', MultiOutputClassifier(LogisticRegression()))
+            ('clf', MultiOutputClassifier(LinearSVC()))
             ])
+
+    parameters = {
+        'clf__estimator__C': [0.1, 1, 10],
+        'clf__estimator__multi_class': ['ovr', 'crammer_singer']
+    }
+
+    model = GridSearchCV(pipeline, param_grid=parameters, scoring=scorer)
+    
     return model
     
 

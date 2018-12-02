@@ -50,12 +50,12 @@ def index():
     messages_per_category = df[labels].sum().sort_values().tail(10)
     categories = list(messages_per_category.index.str.replace("_", " "))
 
+    # Main information regarding dataset
     dataset = {
         'n_records': df.shape[0],
         'n_categories': len(labels)}
 
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
+    # Create visuals
     
     # Plot 1 with two subplots:
 
@@ -98,7 +98,7 @@ def index():
                             yanchor='middle'),)
 
     fig1.layout.annotations = fig1.layout.annotations + annotations
-    
+
      # Plot 2
         
     fig2 = {'data': [dict(type='bar',
