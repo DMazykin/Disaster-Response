@@ -6,6 +6,13 @@ import argparse
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    '''
+    Function loads data from messages and categories csv files and merges them
+
+    INPUT: filepaths to messages and categories csv files.
+
+    OUTPUT: pandas dataframe
+    '''
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
 
@@ -16,6 +23,14 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    '''
+    Function cleans a dataframe
+
+    INPUT: pandas original dataframe
+
+    OUTPUT: pandas cleaned dataframe
+    '''
+
     # create a dataframe of the 36 individual category columns
     categories = df.categories.str.split(";", expand=True)
 
@@ -53,6 +68,11 @@ def clean_data(df):
 
 
 def save_data(df, database_filename):
+    '''
+    Function saves a cleaned dataframe to specified sqlite file
+
+    INPUT: pandas dataframe, file name/path
+    '''
     engine = create_engine('sqlite:///'+database_filename)
     df.to_sql('message_with_cat', engine, if_exists='replace', index=False)
 
