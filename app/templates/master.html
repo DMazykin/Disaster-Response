@@ -37,14 +37,15 @@
         <hr />
       
         <div class="row">
-            <div class="col-lg-11 form-group-lg">
-                <form action="/go" method="get">
-                    <input type="text" class="form-control form-control-lg" name="query" placeholder="Enter a message to classify">
-
-                </form>
-            </div>
-            <div class="col-lg-offset-11">
-                    <button type="submit" class="btn btn-lg btn-success">Classify Message</button>
+            <div class="col-lg-12">
+            <form action="/go" method="get">  
+                <div class="input-group input-group-lg">
+                        <input type="text" class="form-control form-control-lg" name="query" placeholder="Enter a message to classify">
+                        <span class="input-group-btn">
+                            <button class="btn btn-lg btn-success" type="submit">Classify Message</button>
+                        </span>
+                </div>
+            </form>   
             </div>
         </div>
 

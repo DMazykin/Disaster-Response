@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.svm import LinearSVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.metrics import confusion_matrix
